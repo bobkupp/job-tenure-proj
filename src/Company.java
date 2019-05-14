@@ -5,11 +5,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 
 class Company {
-    private String name;
-    private ArrayList<String> state;
-    private ArrayList<Employee> currentAndFormerEmployees;
-    private LocalDate averageTenure;
-
     /*
      *  companies: map with state => Company-object
      */
@@ -101,4 +96,9 @@ class Company {
     public ArrayList<Company> getCompaniesForState(String state) {
         return companies.get(state);
     }
+
+    private String name;
+    private ArrayList<String> state;
+    private ArrayList<Employee> currentAndFormerEmployees;
+    private LocalDate averageTenure;
 }

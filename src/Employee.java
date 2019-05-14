@@ -6,6 +6,8 @@ import java.util.TreeMap;
 
 public class Employee {
 
+    public static final int MINIMUM_AGE_OF_EMPLOYMENT = 18;
+
     public Employee() {
         this.jobMap = new TreeMap<>();
         this.rand = new Random();
@@ -38,6 +40,7 @@ public class Employee {
     public void addJob(Job job) {
         // need to figure out start/end dates
         LocalDate startDate = generateStartDate();
+        job.setStartDate(startDate);
         job.setEndDate(generateEndDate(startDate));
         jobMap.put(startDate, job);
     }
@@ -46,7 +49,7 @@ public class Employee {
         LocalDate start = null;
         if (jobMap.isEmpty()) {
             // set first job at age 18
-            int yearsAgo = age - 18;
+            int yearsAgo = age - MINIMUM_AGE_OF_EMPLOYMENT;
             // sorta randomize start date
             start = LocalDate.now().minusYears(yearsAgo).minusWeeks(rand.nextInt(52)).plusDays(rand.nextInt(365));
         } else {

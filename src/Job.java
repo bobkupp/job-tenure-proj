@@ -39,9 +39,17 @@ public class Job {
         this.endDate = endDate;
     }
 
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate endDate) {
+        this.startDate = endDate;
+    }
+
     private String position;
     private Company company;
     private String state;
-//    private LocalDate startDate;   using as hash key
+    private LocalDate startDate;
     private LocalDate endDate;
 }

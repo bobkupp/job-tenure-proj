@@ -12,7 +12,6 @@ import java.util.Iterator;
 public class EmployeeTenureAPI {
 
     public static final int MAX_JOBS = 3;
-    public static final int MINIMUM_AGE_OF_EMPLOYMENT = 18;
 
     Connection conn = null;
     Company companies = new Company();
@@ -37,8 +36,10 @@ public class EmployeeTenureAPI {
         createDatabase();
         if (conn != null) {
             try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
-
+//                int TEST_ONLY=0;
                 while ((line = br.readLine()) != null) {
+//                    if (TEST_ONLY++ > 10)
+//                        break;
 
                     // use comma as separator
                     String[] employeeData = line.split(cvsSplitBy);
@@ -79,33 +80,38 @@ public class EmployeeTenureAPI {
             employee.setAge(Integer.parseInt(employeeInfo.get("age")));
             employee.setState(state);
 
-            if (employee.getAge() >= MINIMUM_AGE_OF_EMPLOYMENT) {
+            if (employee.getAge() >= Employee.MINIMUM_AGE_OF_EMPLOYMENT) {
+
                 ArrayList<Company> inStateCompanies = companies.getCompaniesForState(state);
                 // check if any eligible companies were found
                 if (inStateCompanies != null && !inStateCompanies.isEmpty()) {
+                    Company inStateCompany = null;
                     int companyCount = inStateCompanies.size();
                     ArrayList<Integer> randomNumbers = new ArrayList<>(randomNumbersMax.subList(0, companyCount));
                     Collections.shuffle(randomNumbers);
-                    int randomIndex = 0;
+                    int companyIndex = 0;
 
                     // find up to MAX_JOBS jobs
-                    for (int jobCount = 0; jobCount < MAX_JOBS; jobCount++) {
-                        randomIndex = randomNumbers.get(jobCount >= companyCount ? 0 : jobCount);
-                        Job job = new Job(inStateCompanies.get(randomIndex), employee.getState(), Position.getRandomOccupation());
+                    for (int jobCount = 0; jobCount < MAX_JOBS && jobCount < companyCount; jobCount++) {
+                        companyIndex = randomNumbers.get(jobCount);
+                        inStateCompany = inStateCompanies.get(companyIndex);
+                        Job job = new Job(inStateCompany, employee.getState(), Position.getRandomOccupation());
                         employee.addJob(job);
-                        inStateCompanies.get(randomIndex).addEmployee(employee);
-                    }
-                    if (!dataset.containsKey(state)) {
-                        ArrayList<Company> company = new ArrayList<>();
-                        company.add(inStateCompanies.get(randomIndex));
-                        dataset.put(state, company);
-                    } else {
-                       ArrayList<Company> company = dataset.get(state);
-                       company.add(inStateCompanies.get(randomIndex));
-                       dataset.put(state, company);
+                        inStateCompany.addEmployee(employee);
+                        if (!dataset.containsKey(state)) {
+                            ArrayList<Company> company = new ArrayList<>();
+                            company.add(inStateCompany);
+                            dataset.put(state, company);
+                        } else {
+                           ArrayList<Company> company = dataset.get(state);
+                           if (!company.contains(inStateCompany)) {
+                               company.add(inStateCompany);
+                           }
+                        }
                     }
                 }
             }
+            this.employees.add(employee);
         }
         return dataset;
     }
