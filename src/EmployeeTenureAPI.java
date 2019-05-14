@@ -3,10 +3,20 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import java.sql.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class EmployeeTenureAPI {
 
+    public static final int MAX_JOBS = 3;
+    public static final int MINIMUM_AGE_OF_EMPLOYMENT = 18;
+
     Connection conn = null;
+    Company companies = new Company();
+    ArrayList<Employee> employees = new ArrayList<>();
 
     public static void main(String[] args) {
         String csvFile = "./data/code-challenge-data.csv";
@@ -15,7 +25,7 @@ public class EmployeeTenureAPI {
         if (!api.importCsvData(csvFile)) {
             System.exit(-1);
         }
-        api.queryTable(); // test
+        HashMap<String, ArrayList<Company>> ds = api.generateRandomDataset();
         api.closeDatabase();
     }
 
@@ -32,7 +42,9 @@ public class EmployeeTenureAPI {
 
                     // use comma as separator
                     String[] employeeData = line.split(cvsSplitBy);
-                    if (employeeData[0] != "first_name" && employeeData[1] != "last_name") {
+
+                    // add any row except for header line
+                    if (!employeeData[0].equals("first_name") && !employeeData[1].equals("last_name")) {
                         if (!addRow(employeeData)) {
                             break;
                         }
@@ -46,6 +58,56 @@ public class EmployeeTenureAPI {
             }
         }
         return importedCsvData;
+    }
+
+    private HashMap<String, ArrayList<Company>> generateRandomDataset() {
+        ArrayList<HashMap<String, String>> results = queryTable("select * from people;", getPeopleTableColumns());
+        Iterator<HashMap<String, String>> rows = results.iterator();
+        HashMap<String, ArrayList<Company>> dataset = new HashMap<>();
+
+        // generate array of ints, that, when shuffled, gives a list of unique random numbers
+        ArrayList<Integer> randomNumbersMax = new ArrayList<Integer>();
+        for (int i =0 ; i < companies.getCompanyCount(); i++) {
+            randomNumbersMax.add(new Integer(i));
+        }
+
+        while (rows.hasNext()) {
+            HashMap<String, String> employeeInfo = rows.next();
+            String state = employeeInfo.get("state");
+            Employee employee = new Employee();
+            employee.setName(employeeInfo.get("firstname") + " " + employeeInfo.get("lastname"));
+            employee.setAge(Integer.parseInt(employeeInfo.get("age")));
+            employee.setState(state);
+
+            if (employee.getAge() >= MINIMUM_AGE_OF_EMPLOYMENT) {
+                ArrayList<Company> inStateCompanies = companies.getCompaniesForState(state);
+                // check if any eligible companies were found
+                if (inStateCompanies != null && !inStateCompanies.isEmpty()) {
+                    int companyCount = inStateCompanies.size();
+                    ArrayList<Integer> randomNumbers = new ArrayList<>(randomNumbersMax.subList(0, companyCount));
+                    Collections.shuffle(randomNumbers);
+                    int randomIndex = 0;
+
+                    // find up to MAX_JOBS jobs
+                    for (int jobCount = 0; jobCount < MAX_JOBS; jobCount++) {
+                        randomIndex = randomNumbers.get(jobCount >= companyCount ? 0 : jobCount);
+                        Job job = new Job(inStateCompanies.get(randomIndex), employee.getState(), Position.getRandomOccupation());
+                        employee.addJob(job);
+                        inStateCompanies.get(randomIndex).addEmployee(employee);
+                    }
+                    if (!dataset.containsKey(state)) {
+                        ArrayList<Company> company = new ArrayList<>();
+                        company.add(inStateCompanies.get(randomIndex));
+                        dataset.put(state, company);
+                    } else {
+                       ArrayList<Company> company = dataset.get(state);
+                       company.add(inStateCompanies.get(randomIndex));
+                       dataset.put(state, company);
+                    }
+                }
+            }
+        }
+        return dataset;
     }
 
     private void createDatabase() {
@@ -93,15 +155,24 @@ public class EmployeeTenureAPI {
         return true;
     }
 
-    private ResultSet queryTable() {
+    private ArrayList<HashMap<String, String>> queryTable(String query, ArrayList<String> columns) {
         ResultSet rs = null;
+        ArrayList<HashMap<String, String>> rows = new ArrayList<>();
         try {
             Statement stat = conn.createStatement();
-            rs = stat.executeQuery("select * from people;");
+            rs = stat.executeQuery(query);
             while (rs.next()) {
-                System.out.println(
-                    "name = " + rs.getString("firstname") + " " + rs.getString("lastname") +
-                    ", age = " + rs.getString("age") + ", state = " + rs.getString("state"));
+                HashMap<String, String> resultMap = new HashMap<>();
+                Iterator<String> columnNames = columns.iterator();
+                while (columnNames.hasNext()) {
+                    String columnName = columnNames.next();
+                    resultMap.put(columnName, rs.getString(columnName));
+                }
+                rows.add(resultMap);
+//                keys = rs.getArray()
+//                System.out.println(
+//                    "name = " + rs.getString("firstname") + " " + rs.getString("lastname") +
+//                    ", age = " + rs.getString("age") + ", state = " + rs.getString("state"));
             }
         } catch (SQLException sqle) {
             System.out.println("Unable to add row to 'people' table: " + sqle.getMessage());
@@ -114,6 +185,10 @@ public class EmployeeTenureAPI {
                 System.out.println("Error trying to close resultSet: " + sqle.getMessage());
             }
         }
-        return rs;
+        return rows;
+    }
+
+    private ArrayList<String> getPeopleTableColumns() {
+        return new ArrayList<>(Arrays.asList("firstname", "lastname", "age", "state"));
     }
 }

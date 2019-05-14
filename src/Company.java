@@ -1,50 +1,75 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.time.LocalDate;
 import java.util.HashMap;
 
 class Company {
     private String name;
-    private ArrayList<String> position;
     private ArrayList<String> state;
     private ArrayList<Employee> currentAndFormerEmployees;
     private LocalDate averageTenure;
 
-    private static ArrayList<Company> companies;
+    /*
+     *  companies: map with state => Company-object
+     */
+    private static HashMap<String, ArrayList<Company>> companies = new HashMap<>();
 
-    public void Company() {
-        if (companies == null) {
+    public Company() {
+        if (companies.isEmpty()) {
             buildCompanyList();
         }
+        currentAndFormerEmployees = new ArrayList<>();
     }
 
-    public Company(String name, ArrayList<String> position, ArrayList<String> state) {
+    public Company(String name, ArrayList<String> state) {
         this.name = name;
-        this.position = position;
         this.state = state;
+        currentAndFormerEmployees = new ArrayList<>();
     }
 
     /*
      *  This could be injected from a Bean
+     *
+     *  add each company with its list of states and its list of jobs
+     *
      */
     private void buildCompanyList() {
-        companies.add (new Company("Northeastern University", new ArrayList<>(Arrays.asList("Back-end Software Engineer")), new ArrayList<>(Arrays.asList("MA", "NC"))));
-        companies.add (new Company("University of Miami", new ArrayList<>(Arrays.asList("Front-end Software Engineer")), new ArrayList<>(Arrays.asList("FL"))));
-        companies.add (new Company("NH Learning Solutions", new ArrayList<>(Arrays.asList("Manager")), new ArrayList<>(Arrays.asList("NH"))));
-        companies.add (new Company("EverTrue", new ArrayList<>(Arrays.asList("CEO")), new ArrayList<>(Arrays.asList("MA"))));
-        companies.add (new Company("Google", new ArrayList<>(Arrays.asList("Accountant")), new ArrayList<>(Arrays.asList("CA", "MA", "KY"))));
-        companies.add (new Company("TripAdvisor", new ArrayList<>(Arrays.asList("Rockstar")), new ArrayList<>(Arrays.asList("MA", "NV", "OH"))));
-        companies.add (new Company("Microsoft", new ArrayList<>(Arrays.asList("Personal Trainer")), new ArrayList<>(Arrays.asList("WA"))));
-        companies.add (new Company("GoDaddy", new ArrayList<>(Arrays.asList("Physical Therapist")), new ArrayList<>(Arrays.asList("AZ", "NV", "DC"))));
-        companies.add (new Company("SXSW", new ArrayList<>(Arrays.asList("Brand Manager")), new ArrayList<>(Arrays.asList("TX"))));
-        companies.add (new Company("HBO", new ArrayList<>(Arrays.asList("Human Resources")), new ArrayList<>(Arrays.asList("NY", "RI"))));
-        companies.add (new Company("Fender", new ArrayList<>(Arrays.asList("Pilot")), new ArrayList<>(Arrays.asList("AZ", "CA", "TN"))));
-        companies.add (new Company("Alaskan Airlines", new ArrayList<>(Arrays.asList("Flight Attendant")), new ArrayList<>(Arrays.asList("WA"))));
-        companies.add (new Company("Southern Living Magazine", new ArrayList<>(Arrays.asList("Bus Driver", "Teacher")), new ArrayList<>(Arrays.asList("AL", "TX", "LA", "GA", "MO"))));
-        companies.add (new Company("Goldman Sachs", new ArrayList<>(Arrays.asList("Principal")), new ArrayList<>(Arrays.asList("NY"))));
-        companies.add (new Company("Planet Fitness", new ArrayList<>(Arrays.asList("Event Planner")), new ArrayList<>(Arrays.asList("NH", "ME"))));
-        companies.add (new Company("Gold’s Gym", new ArrayList<>(Arrays.asList("Security Advisor")), new ArrayList<>(Arrays.asList("TX", "GA", "KY"))));
-        companies.add (new Company("Arnold Strongman Classic", new ArrayList<>(Arrays.asList("Booking Specialist", "Account Executive", "Counselor")), new ArrayList<>(Arrays.asList("OH", "WV", "MT"))));
+        addCompany(new Company("Northeastern University", new ArrayList<>(Arrays.asList("MA", "NC"))));
+        addCompany(new Company("University of Miami", new ArrayList<>(Arrays.asList("FL"))));
+        addCompany(new Company("NH Learning Solutions", new ArrayList<>(Arrays.asList("NH"))));
+        addCompany(new Company("EverTrue", new ArrayList<>(Arrays.asList("MA"))));
+        addCompany(new Company("Google", new ArrayList<>(Arrays.asList("CA", "MA", "KY"))));
+        addCompany(new Company("TripAdvisor", new ArrayList<>(Arrays.asList("MA", "NV", "OH"))));
+        addCompany(new Company("Microsoft", new ArrayList<>(Arrays.asList("WA"))));
+        addCompany(new Company("GoDaddy", new ArrayList<>(Arrays.asList("AZ", "NV", "DC"))));
+        addCompany(new Company("SXSW", new ArrayList<>(Arrays.asList("TX"))));
+        addCompany(new Company("HBO", new ArrayList<>(Arrays.asList("NY", "RI"))));
+        addCompany(new Company("Fender", new ArrayList<>(Arrays.asList("AZ", "CA", "TN"))));
+        addCompany(new Company("Alaskan Airlines", new ArrayList<>(Arrays.asList("WA"))));
+        addCompany(new Company("Southern Living Magazine", new ArrayList<>(Arrays.asList("AL", "TX", "LA", "GA", "MO"))));
+        addCompany(new Company("Goldman Sachs", new ArrayList<>(Arrays.asList("NY"))));
+        addCompany(new Company("Planet Fitness", new ArrayList<>(Arrays.asList("NH", "ME"))));
+        addCompany(new Company("Gold’s Gym", new ArrayList<>(Arrays.asList("TX", "GA", "KY"))));
+        addCompany(new Company("Arnold Strongman Classic", new ArrayList<>(Arrays.asList("OH", "WV", "MT"))));
+    }
+
+    /*
+     *  add company to hash map for each state that it has offices in
+     */
+    private void addCompany(Company company) {
+        ArrayList<Company> companyList;
+        Iterator<String> stateIterator = company.state.iterator();
+        while (stateIterator.hasNext()) {
+            String state = stateIterator.next();
+            if (companies.containsKey(state)) {
+                companyList = companies.get(state);
+            } else {
+                companyList = new ArrayList<>();
+            }
+            companyList.add(company);
+            companies.put(state, companyList);
+        }
     }
 
     public LocalDate calculateAverageTenure() {
@@ -65,7 +90,15 @@ class Company {
         return null;        // TBD
     }
 
-    public void addEmployee() {
+    public void addEmployee(Employee employee) {
+        currentAndFormerEmployees.add(employee);
+    }
 
+    public int getCompanyCount() {
+        return companies.size();
+    }
+
+    public ArrayList<Company> getCompaniesForState(String state) {
+        return companies.get(state);
     }
 }
