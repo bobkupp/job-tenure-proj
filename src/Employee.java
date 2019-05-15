@@ -3,39 +3,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.TreeMap;
+import java.time.temporal.ChronoUnit;
 
 public class Employee {
 
     public static final int MINIMUM_AGE_OF_EMPLOYMENT = 18;
-
-    public Employee() {
-        this.jobMap = new TreeMap<>();
-        this.rand = new Random();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
 
     public void addJob(Job job) {
         // need to figure out start/end dates
@@ -74,9 +46,58 @@ public class Employee {
         return end;
     }
 
+    public int calculateTenureAtCompany(String companyName) {
+        int tenure = 0;
+        Company company = Company.getByName(companyName);
+        if (company != null) {
+            Iterator<Job> jobIterator = jobMap.values().iterator();
+            while (jobIterator.hasNext()) {
+                Job job = jobIterator.next();
+                if (job.getCompany().equals(company)) {
+                    tenure += ChronoUnit.DAYS.between(job.getStartDate(), job.getEndDate());
+                }
+            }
+        }
+        return tenure;
+    }
+
+    public Employee() {
+        this.jobMap = new TreeMap<>();
+        this.rand = new Random();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public TreeMap<LocalDate, Job> getJobMap() {
+        return jobMap;
+    }
+
     private Random rand;
     private String name;
     private int age;
     private String state;
-    TreeMap<LocalDate, Job> jobMap;
+
+    private TreeMap<LocalDate, Job> jobMap;
 }

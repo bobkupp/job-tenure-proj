@@ -1,5 +1,4 @@
 import java.time.LocalDate;
-import java.util.Collection;
 
 public class Job {
     public Job(Company company, String state, String position) {

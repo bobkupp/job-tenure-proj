@@ -1,14 +1,6 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.*;
 
 class Company {
-    /*
-     *  companies: map with state => Company-object
-     */
-    private static HashMap<String, ArrayList<Company>> companies = new HashMap<>();
 
     public Company() {
         if (companies.isEmpty()) {
@@ -53,36 +45,49 @@ class Company {
      *  add company to hash map for each state that it has offices in
      */
     private void addCompany(Company company) {
+        companies.add(company);
         ArrayList<Company> companyList;
         Iterator<String> stateIterator = company.state.iterator();
         while (stateIterator.hasNext()) {
             String state = stateIterator.next();
-            if (companies.containsKey(state)) {
-                companyList = companies.get(state);
+            if (companiesByState.containsKey(state)) {
+                companyList = companiesByState.get(state);
             } else {
                 companyList = new ArrayList<>();
             }
             companyList.add(company);
-            companies.put(state, companyList);
+            companiesByState.put(state, companyList);
         }
     }
 
-    public LocalDate calculateAverageTenure() {
-        HashMap<String, LocalDate> tenureMap = new HashMap<>();
-//        foreach (currentAndFormerEmployees : employee) {
-//            if (tenureMap.has(employee.name)) {
-//                tenureMap.value += employee.endDate - employee.startDate;
-//            } else {
-//                tenureMap.value = employee.endDate - employee.startDate;
-//            }
-//        }
-//        LocalDate totalTenure =0;
-//        foreach tenureMap : tenure {
-//            totalTenure += tenure.value;
-//        }
-//        LocalDate averageTenure = totalTenure/count(tenureMap);
-//        return averageTenure;
-        return null;        // TBD
+    public void calculateAverageTenure() {
+        int totalTenure = 0;
+        Iterator<Employee> employeeIterator = currentAndFormerEmployees.iterator();
+        while (employeeIterator.hasNext()) {
+            totalTenure += employeeIterator.next().calculateTenureAtCompany(this.name);
+        }
+        this.averageTenure = currentAndFormerEmployees.size() > 0 ? totalTenure/currentAndFormerEmployees.size() : 0;
+    }
+
+    public void generateAllTenureData() {
+        Iterator<Company> it = companies.iterator();
+        while (it.hasNext()) {
+            Company company = it.next();
+            company.calculateAverageTenure();
+        }
+    }
+
+    public static Company getByName(String companyName) {
+        Company matchingCompany = null;
+        Iterator<Company> it = companies.iterator();
+        while (it.hasNext()) {
+            Company company = it.next();
+            if (company.getName().compareTo(companyName) == 0) {
+                matchingCompany = company;
+                break;
+            }
+        }
+        return matchingCompany;
     }
 
     public void addEmployee(Employee employee) {
@@ -94,11 +99,33 @@ class Company {
     }
 
     public ArrayList<Company> getCompaniesForState(String state) {
-        return companies.get(state);
+        return companiesByState.get(state);
     }
 
+    public int getAverageTenure() {
+        return averageTenure;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public static HashSet<Company> getCompanies() {
+        return companies;
+    }
+
+    public ArrayList<Employee> getCurrentAndFormerEmployees() {
+        return currentAndFormerEmployees;
+    }
+
+    /*
+     *  companiesByState: map with state => Company object
+     *  companies: set of all companies
+     */
+    private static HashMap<String, ArrayList<Company>> companiesByState = new HashMap<>();
+    private static HashSet<Company> companies = new HashSet<>();
     private String name;
     private ArrayList<String> state;
     private ArrayList<Employee> currentAndFormerEmployees;
-    private LocalDate averageTenure;
+    private int averageTenure;
 }
