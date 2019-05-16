@@ -1,8 +1,8 @@
 import java.time.LocalDate;
 
 public class Job {
-    public Job(Company company, String state, String position) {
-        this.company = company;
+    public Job(String companyName, String state, String position) {
+        this.companyName = companyName;
         this.state = state;
         this.position = position;
     }
@@ -14,12 +14,12 @@ public class Job {
         this.position = position;
     }
 
-    public Company getCompany() {
-        return company;
+    public String getCompanyName() {
+        return companyName;
     }
 
-    public void setCompany(Company company) {
-        this.company = company;
+    public void setCompany(String companyName) {
+        this.companyName = companyName;
     }
 
     public String getState() {
@@ -47,7 +47,7 @@ public class Job {
     }
 
     private String position;
-    private Company company;
+    private String companyName;
     private String state;
     private LocalDate startDate;
     private LocalDate endDate;

@@ -61,12 +61,12 @@ class Company {
     }
 
     public void calculateAverageTenure() {
-        int totalTenure = 0;
+        double totalTenure = 0;
         Iterator<Employee> employeeIterator = currentAndFormerEmployees.iterator();
         while (employeeIterator.hasNext()) {
             totalTenure += employeeIterator.next().calculateTenureAtCompany(this.name);
         }
-        this.averageTenureYears = currentAndFormerEmployees.size() > 0 ? (totalTenure/currentAndFormerEmployees.size())/365 : 0;
+        this.averageTenureYears = currentAndFormerEmployees.size() > 0 ? totalTenure/currentAndFormerEmployees.size() : 0;
     }
 
     public void generateAllTenureData() {
@@ -102,8 +102,9 @@ class Company {
         return companiesByState.get(state);
     }
 
+    // returning rounded to the hundredths place
     public double getAverageTenure() {
-        return averageTenureYears;
+        return Math.round(averageTenureYears * 100.0)/100.0;
     }
 
     public String getName() {

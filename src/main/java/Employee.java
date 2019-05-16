@@ -46,19 +46,17 @@ public class Employee {
         return end;
     }
 
-    public int calculateTenureAtCompany(String companyName) {
-        int tenure = 0;
-        Company company = Company.getByName(companyName);
-        if (company != null) {
-            Iterator<Job> jobIterator = jobMap.values().iterator();
-            while (jobIterator.hasNext()) {
-                Job job = jobIterator.next();
-                if (job.getCompany().equals(company)) {
-                    tenure += ChronoUnit.DAYS.between(job.getStartDate(), job.getEndDate());
-                }
+    public double calculateTenureAtCompany(String companyName) {
+        double tenure = 0;
+        Iterator<Job> jobIterator = jobMap.values().iterator();
+        while (jobIterator.hasNext()) {
+            Job job = jobIterator.next();
+            if (job.getCompanyName().equals(companyName)) {
+                tenure += ChronoUnit.DAYS.between(job.getStartDate(), job.getEndDate());
             }
         }
-        return tenure;
+        // convert result to years, round to hundredths place
+        return Math.round((tenure/365) * 100.0)/100.0;
     }
 
     public Employee() {

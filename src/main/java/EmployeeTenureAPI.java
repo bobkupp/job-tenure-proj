@@ -34,16 +34,23 @@ public class EmployeeTenureAPI {
 
         // 5a
         String  foo = api.getEmployeeData("Peter Greene");
+        System.out.println("Employee data for Peter Greene: " + foo);
         foo = api.getEmployeeData("Lori Palmer");
+        System.out.println("Employee data for Lori Palmer: " + foo);
         foo = api.getEmployeeData("Harry Bradley");
+        System.out.println("Employee data for Harry Bradley: " + foo);
         foo = api.getEmployeeData("Jose Pekerman");
+        System.out.println("Employee data for Jose Pekerman: " + foo);
 
         // 5b
         foo = api.getTenureRanking();
+        System.out.println("Tenure ranking: " + foo);
 
         // 5c
         foo = api.getMostTenured("SXSW");
+        System.out.println("Most tenured employees at SXSW: " + foo);
         foo = api.getMostTenured("HBO");
+        System.out.println("Most tenured employees at HBO: " + foo);
         api.closeDatabase();
     }
 
@@ -114,7 +121,7 @@ public class EmployeeTenureAPI {
                     for (int jobCount = 0; jobCount < MAX_JOBS && jobCount < companyCount; jobCount++) {
                         companyIndex = randomNumbers.get(jobCount);
                         inStateCompany = inStateCompanies.get(companyIndex);
-                        Job job = new Job(inStateCompany, employee.getState(), Position.getRandomOccupation());
+                        Job job = new Job(inStateCompany.getName(), employee.getState(), Position.getRandomOccupation());
                         employee.addJob(job);
                         inStateCompany.addEmployee(employee);
                         if (!dataset.containsKey(state)) {
@@ -140,7 +147,7 @@ public class EmployeeTenureAPI {
      *  from most recent to least recent
      */
     private String getEmployeeData(String employeeName) {
-        String jsonEmployeeData = "";
+        String jsonEmployeeData = "** employee not found **";
 
         Employee employeeData = findEmployeeInDataset(employeeName);
 
@@ -155,11 +162,11 @@ public class EmployeeTenureAPI {
         Iterator<Employee> it = employees.iterator();
         while (it.hasNext()) {
             employee = it.next();
-            if (employee.getName().compareTo(name) == 0) {
-                break;
+            if (employee.getName().equals(name)) {
+                return employee;
             }
         }
-        return employee;
+        return null;
     }
 
     /*
@@ -187,21 +194,19 @@ public class EmployeeTenureAPI {
 
         Company company = Company.getByName(companyName);
 
-        if (tenureData != null) {
-            tenureData.company = companyName;
-            tenureData.avg_retention = company.getAverageTenure();
-            Iterator<Employee> employeeIterator = company.getCurrentAndFormerEmployees().iterator();
-            while (employeeIterator.hasNext()) {
-                Employee employee = employeeIterator.next();
-                double tenure = employee.calculateTenureAtCompany(companyName);
-                if (tenure > company.getAverageTenure()) {
-                    // fill in company info, if not there, then add employee info to list
-                    EmployeeTenure employeeTenure = new EmployeeTenure();
-                    employeeTenure.name = employee.getName();
-                    employeeTenure.age = employee.getAge();
-                    employeeTenure.tenure = tenure;
-                    tenureData.most_tenured.add(employeeTenure);
-                }
+        tenureData.company = companyName;
+        tenureData.avg_retention = company.getAverageTenure();
+        Iterator<Employee> employeeIterator = company.getCurrentAndFormerEmployees().iterator();
+        while (employeeIterator.hasNext()) {
+            Employee employee = employeeIterator.next();
+            double tenure = employee.calculateTenureAtCompany(companyName);
+            if (tenure > company.getAverageTenure()) {
+                // fill in company info, if not there, then add employee info to list
+                EmployeeTenure employeeTenure = new EmployeeTenure();
+                employeeTenure.name = employee.getName();
+                employeeTenure.age = employee.getAge();
+                employeeTenure.tenure = tenure;
+                tenureData.most_tenured.add(employeeTenure);
             }
         }
 
@@ -216,7 +221,7 @@ public class EmployeeTenureAPI {
         try {
             json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
         } catch (IOException ioe) {
-            System.out.println("Error trying to json-ize object");
+            System.out.println("Error trying to json-ize object: " + ioe.getMessage());
         }
         return json;
     }
@@ -300,12 +305,36 @@ public class EmployeeTenureAPI {
     }
 
     class TenureData {
+        public String getCompany() {
+            return company;
+        }
+
+        public double getAvg_retention() {
+            return avg_retention;
+        }
+
+        public ArrayList<EmployeeTenure> getMost_tenured() {
+            return most_tenured;
+        }
+
         String company;
         double avg_retention;
         ArrayList<EmployeeTenure> most_tenured;
     }
 
     class EmployeeTenure {
+        public String getName() {
+            return name;
+        }
+
+        public int getAge() {
+            return age;
+        }
+
+        public double getTenure() {
+            return tenure;
+        }
+
         String name;
         int age;
         double tenure;
